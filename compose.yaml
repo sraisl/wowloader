@@ -6,10 +6,20 @@ services:
     ports:
       - "8000:8000"
     volumes:
-      - ./downloads:/data          # Zielverzeichnis auf dem Host
+      # Zielverzeichnis auf dem Host; anderer Pfad z. B. per `WOW_DATA_DIR=/srv/wow docker compose up -d`
+      # oder WOW_DATA_DIR=... in einer .env-Datei neben dieser Datei.
+      - type: bind
+        source: ${WOW_DATA_DIR:-/mnt/data/wow}
+        target: /data
+        bind:
+          # Fehlt der Ordner, nicht still einen leeren anlegen, sondern mit Fehler abbrechen
+          create_host_path: false
+          # Wird dort später ein Share (NFS/SMB) (neu) eingehängt, sieht der Container ihn trotzdem
+          propagation: rslave
     environment:
       CHECK_INTERVAL_MINUTES: 60
       PARALLEL: 4                  # Verbindungen pro Folge
       # BASE_URL: https://wow.example.org   # für absolute Links im RSS-Feed hinter einem Proxy
-    # user: "1000:1000"            # UID/GID passend zum Besitzer von ./downloads
+    # Der Container läuft als UID/GID 1000; passend zum Besitzer des Zielordners ändern (ls -lnd <ordner>)
+    # user: "1000:1000"
     restart: unless-stopped

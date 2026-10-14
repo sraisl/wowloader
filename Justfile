@@ -37,7 +37,7 @@ check:
 build:
     docker build -t wowloader .
 
-# Holt das aktuelle Image aus GHCR und startet den Container (Ziel: ./downloads)
+# Holt das aktuelle Image aus GHCR und startet/aktualisiert den Container (Ziel: WOW_DATA_DIR, Standard /mnt/data/wow)
 up:
     docker compose up -d
     @echo "UI: http://localhost:{{port}}"
@@ -46,9 +46,9 @@ up:
 down:
     docker compose down
 
-# Startet den Container neu
+# Erstellt den Container neu (übernimmt Änderungen an compose.yaml, im Gegensatz zu `docker compose restart`)
 restart:
-    docker compose restart
+    docker compose up -d --force-recreate
 
 # Folgt dem Container-Log
 logs:

@@ -23,7 +23,7 @@ Der Container prüft regelmäßig auf neue Folgen und stellt auf Port 8000 ein W
 Unter `/feed.xml` gibt es einen Podcast-Feed.
 
 ```sh
-docker compose up -d                    # Image aus GHCR, Zielordner: ./downloads (siehe compose.yaml)
+docker compose up -d                    # Image aus GHCR, Zielordner: /mnt/data/wow (WOW_DATA_DIR, siehe compose.yaml)
 # oder
 docker run -d -p 8000:8000 -v /pfad/zum/ziel:/data ghcr.io/sraisl/wowloader:latest
 # lokal bauen statt aus GHCR:
