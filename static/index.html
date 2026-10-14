@@ -1,0 +1,559 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Extra WOW</title>
+<link rel="alternate" type="application/rss+xml" title="Extra WOW" href="feed.xml">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='16' fill='%23d6223a'/%3E%3Ccircle cx='16' cy='16' r='5' fill='white'/%3E%3C/svg%3E">
+<script>
+  // Theme vor dem ersten Rendern setzen, damit nichts aufflackert.
+  try { const t = localStorage.getItem("theme"); if (t === "light" || t === "dark") document.documentElement.dataset.theme = t; } catch {}
+</script>
+<style>
+  :root {
+    color-scheme: light;
+    --bg: #f5f4f0; --surface: #ffffff; --surface-2: #f0eee9; --text: #1b1b19; --muted: #6e6c66;
+    --faint: #9a978f; --border: #e4e1da; --accent: #d6223a; --accent-soft: #fbe7ea; --on-accent: #ffffff;
+    --ok: #2f7d3a; --ok-soft: #e5f2e6; --warn: #a35f00; --warn-soft: #fbefdc; --err: #b3261e; --err-soft: #f9e3e1;
+    --shadow: 0 1px 2px rgb(0 0 0 / .04), 0 4px 16px rgb(0 0 0 / .05);
+    --radius: 14px;
+    --mono: ui-monospace, SFMono-Regular, Menlo, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      color-scheme: dark;
+      --bg: #121211; --surface: #1c1c1a; --surface-2: #262624; --text: #eeede9; --muted: #a5a39c;
+      --faint: #75736d; --border: #2f2f2c; --accent: #ff5468; --accent-soft: #3a1a1f; --on-accent: #1a0a0d;
+      --ok: #7fd18b; --ok-soft: #1b2e1d; --warn: #f3b25c; --warn-soft: #332611; --err: #f2948c; --err-soft: #3a1c1a;
+      --shadow: 0 1px 2px rgb(0 0 0 / .3), 0 4px 16px rgb(0 0 0 / .25);
+    }
+  }
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --bg: #121211; --surface: #1c1c1a; --surface-2: #262624; --text: #eeede9; --muted: #a5a39c;
+    --faint: #75736d; --border: #2f2f2c; --accent: #ff5468; --accent-soft: #3a1a1f; --on-accent: #1a0a0d;
+    --ok: #7fd18b; --ok-soft: #1b2e1d; --warn: #f3b25c; --warn-soft: #332611; --err: #f2948c; --err-soft: #3a1c1a;
+    --shadow: 0 1px 2px rgb(0 0 0 / .3), 0 4px 16px rgb(0 0 0 / .25);
+  }
+
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text); padding-bottom: 120px;
+         font: 15px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+         transition: background .2s, color .2s; }
+  main { max-width: 880px; margin: 0 auto; padding: 28px 16px; }
+  svg.i { width: 18px; height: 18px; flex: none; stroke: currentColor; fill: none; stroke-width: 2;
+          stroke-linecap: round; stroke-linejoin: round; }
+
+  /* Kopf */
+  header { display: flex; align-items: center; gap: 14px; margin-bottom: 24px; }
+  .logo { width: 44px; height: 44px; border-radius: 50%; background: var(--accent); flex: none;
+          display: grid; place-items: center; box-shadow: 0 4px 14px color-mix(in srgb, var(--accent) 35%, transparent); }
+  .logo span { width: 14px; height: 14px; border-radius: 50%; background: var(--surface); }
+  .brand { flex: 1; min-width: 0; }
+  h1 { font-size: 22px; line-height: 1.2; margin: 0; letter-spacing: -.01em; }
+  .tagline { color: var(--muted); font-size: 13px; }
+
+  /* Buttons */
+  button, .btn { font: inherit; font-size: 14px; font-weight: 500; border: 1px solid var(--border);
+                 background: var(--surface); color: var(--text); border-radius: 10px; padding: 8px 14px;
+                 cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; gap: 8px;
+                 transition: background .15s, border-color .15s, transform .1s; }
+  button:hover, .btn:hover { background: var(--surface-2); }
+  button:active, .btn:active { transform: scale(.97); }
+  button:focus-visible, .btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  button.primary { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+  button.primary:hover { background: color-mix(in srgb, var(--accent) 88%, black); }
+  button:disabled { opacity: .55; cursor: default; transform: none; }
+  .icon-btn { padding: 0; width: 38px; height: 38px; justify-content: center; border-radius: 10px; }
+  .icon-btn.ghost { border-color: transparent; background: transparent; color: var(--muted); }
+  .icon-btn.ghost:hover { background: var(--surface-2); color: var(--text); }
+  .icon-btn.danger:hover { color: var(--err); background: var(--err-soft); }
+
+  /* Karten */
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+          box-shadow: var(--shadow); }
+  h2 { font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: .06em; color: var(--muted);
+       margin: 32px 0 10px; display: flex; align-items: center; gap: 8px; }
+  h2 .count { background: var(--surface-2); color: var(--muted); border-radius: 99px; padding: 0 8px;
+              font-size: 12px; letter-spacing: 0; }
+
+  /* Statuskarte */
+  .hero { padding: 18px; display: grid; gap: 16px; }
+  .hero-top { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 16px; }
+  .state { display: flex; align-items: center; gap: 10px; flex: 1; min-width: 200px; }
+  .dot { width: 10px; height: 10px; border-radius: 50%; background: var(--ok); flex: none; position: relative; }
+  .dot.busy { background: var(--accent); }
+  .dot.busy::after { content: ""; position: absolute; inset: -5px; border-radius: 50%;
+                     border: 2px solid var(--accent); animation: pulse 1.6s ease-out infinite; }
+  .dot.error { background: var(--err); }
+  @keyframes pulse { from { opacity: .8; transform: scale(.6); } to { opacity: 0; transform: scale(1.5); } }
+  .state b { font-size: 16px; }
+  .state small { display: block; color: var(--muted); font-size: 13px; }
+  .hero-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+  .times { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; }
+  .tile { background: var(--surface-2); border-radius: 10px; padding: 10px 12px; }
+  .tile .label { font-size: 12px; color: var(--muted); }
+  .tile .value { font-weight: 600; font-variant-numeric: tabular-nums; }
+  .tile .value.ok { color: var(--ok); } .tile .value.err { color: var(--err); }
+
+  /* Fortschritt */
+  .progress { border-top: 1px solid var(--border); padding-top: 14px; }
+  .progress[hidden] { display: none; }
+  .ptext { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 4px 12px;
+           font-size: 13px; color: var(--muted); margin-bottom: 8px; font-variant-numeric: tabular-nums; }
+  .ptext .pname { color: var(--text); font-weight: 600; min-width: 0; overflow-wrap: anywhere; }
+  .bar { height: 8px; background: var(--surface-2); border-radius: 99px; overflow: hidden; }
+  #pbar { height: 100%; width: 0; border-radius: 99px; transition: width .6s ease;
+          background: linear-gradient(90deg, var(--accent), color-mix(in srgb, var(--accent) 60%, #ffb000)); }
+
+  /* Folgenliste */
+  .list { overflow: hidden; }
+  .row { display: grid; grid-template-columns: auto 1fr auto; gap: 4px 14px; align-items: center;
+         padding: 12px 14px; border-top: 1px solid var(--border); transition: background .15s; }
+  .row:first-child { border-top: 0; }
+  .row:hover { background: color-mix(in srgb, var(--surface-2) 50%, transparent); }
+  .row.playing { background: var(--accent-soft); }
+  .cal { width: 48px; text-align: center; border-radius: 10px; background: var(--surface-2); padding: 4px 0;
+         line-height: 1.1; }
+  .row.playing .cal { background: var(--accent); color: var(--on-accent); }
+  .cal .d { font-size: 18px; font-weight: 700; display: block; }
+  .cal .m { font-size: 11px; text-transform: uppercase; letter-spacing: .04em; opacity: .75; }
+  .meta { min-width: 0; cursor: pointer; }
+  .meta .title { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .meta .sub { color: var(--muted); font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .actions { display: flex; gap: 2px; }
+  .details { grid-column: 2 / -1; color: var(--muted); font-size: 14px; white-space: pre-line;
+             padding: 6px 0 2px; }
+  .empty { padding: 28px 16px; color: var(--muted); text-align: center; }
+  .empty svg.i { width: 28px; height: 28px; display: block; margin: 0 auto 8px; color: var(--faint); }
+
+  /* Online-Kacheln */
+  .days { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
+  .day { padding: 12px 14px; display: flex; flex-direction: column; gap: 8px; }
+  .day .wd { font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; }
+  .day .dt { font-weight: 700; font-size: 17px; font-variant-numeric: tabular-nums; }
+  .day button { padding: 5px 10px; font-size: 13px; align-self: flex-start; }
+  .badge { font-size: 12px; font-weight: 600; padding: 3px 10px; border-radius: 99px; align-self: flex-start;
+           display: inline-flex; align-items: center; gap: 6px; }
+  .badge.vorhanden { background: var(--ok-soft); color: var(--ok); }
+  .badge.ausstehend { background: var(--warn-soft); color: var(--warn); }
+  .badge.gelöscht { background: var(--err-soft); color: var(--err); }
+  .badge.laedt { background: var(--accent-soft); color: var(--accent); }
+
+  /* Log */
+  details.log { margin-top: 32px; }
+  details.log summary { cursor: pointer; color: var(--muted); font-size: 13px; font-weight: 600;
+                        text-transform: uppercase; letter-spacing: .06em; list-style: none;
+                        display: flex; align-items: center; gap: 6px; margin-bottom: 10px; }
+  details.log summary::-webkit-details-marker { display: none; }
+  details.log summary svg.i { transition: transform .2s; width: 16px; height: 16px; }
+  details.log[open] summary svg.i { transform: rotate(90deg); }
+  pre { padding: 14px; font: 12px/1.6 var(--mono); overflow: auto; max-height: 360px; margin: 0;
+        color: var(--muted); }
+
+  /* Player */
+  .player { position: fixed; left: 12px; right: 12px; bottom: 12px; max-width: 856px; margin: 0 auto;
+            padding: 10px 14px; display: none; align-items: center; gap: 12px;
+            background: color-mix(in srgb, var(--surface) 88%, transparent);
+            backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); }
+  .player.on { display: flex; }
+  .player .now { min-width: 0; flex: 0 1 220px; font-size: 13px; }
+  .player .now b { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .player .now span { color: var(--muted); }
+  .player audio { flex: 1; min-width: 0; height: 40px; }
+  @media (max-width: 560px) {
+    .player { flex-wrap: wrap; }
+    .player .now { flex: 1 1 calc(100% - 50px); }
+    .player audio { flex-basis: 100%; }
+    .hero-actions { width: 100%; }
+    .hero-actions .grow { flex: 1; justify-content: center; }
+  }
+
+  /* Toast */
+  .toast { position: fixed; left: 50%; top: 16px; transform: translate(-50%, -20px); opacity: 0;
+           background: var(--text); color: var(--bg); padding: 10px 16px; border-radius: 10px; font-size: 14px;
+           box-shadow: var(--shadow); transition: opacity .2s, transform .2s; pointer-events: none; z-index: 10;
+           max-width: calc(100% - 32px); }
+  .toast.on { opacity: 1; transform: translate(-50%, 0); }
+  .toast.err { background: var(--err); color: #fff; }
+
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <div class="logo" aria-hidden="true"><span></span></div>
+    <div class="brand">
+      <h1>Extra WOW</h1>
+      <div class="tagline">Radio Wien · Die 2 um 2 · Mo–Fr 14–15 Uhr</div>
+    </div>
+    <button class="icon-btn ghost" id="theme" title="Farbschema"></button>
+  </header>
+
+  <section class="card hero">
+    <div class="hero-top">
+      <div class="state">
+        <span class="dot" id="dot"></span>
+        <div><b id="state-text">Lade Status …</b><small id="state-sub"></small></div>
+      </div>
+      <div class="hero-actions">
+        <button class="primary grow" id="run"></button>
+        <a class="btn" href="feed.xml" title="Podcast-Feed öffnen" id="rss"></a>
+        <button class="icon-btn" id="copy" title="Feed-URL kopieren"></button>
+      </div>
+    </div>
+    <div class="times">
+      <div class="tile"><div class="label">Letzter Lauf</div><div class="value" id="t-last">–</div></div>
+      <div class="tile"><div class="label">Nächster Lauf</div><div class="value" id="t-next">–</div></div>
+      <div class="tile"><div class="label">Archiv</div><div class="value" id="t-archive">–</div></div>
+    </div>
+    <div class="progress" id="progress" hidden>
+      <div class="ptext"><span class="pname" id="pname"></span><span id="pinfo"></span></div>
+      <div class="bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" id="pbarwrap"><div id="pbar"></div></div>
+    </div>
+  </section>
+
+  <h2>Downloads <span class="count" id="ep-count">0</span></h2>
+  <div class="card list" id="episodes"><div class="empty">Lade …</div></div>
+
+  <h2>Online beim ORF</h2>
+  <div class="days" id="online"><div class="card empty">Lade …</div></div>
+
+  <details class="log">
+    <summary><span id="log-chevron"></span>Log</summary>
+    <pre class="card" id="log"></pre>
+  </details>
+</main>
+
+<div class="card player" id="player">
+  <button class="icon-btn" id="pp" title="Abspielen/Pause"></button>
+  <div class="now"><b id="now-title"></b><span id="now-sub"></span></div>
+  <audio id="audio" controls preload="none"></audio>
+  <button class="icon-btn ghost" id="close" title="Player schließen"></button>
+</div>
+
+<div class="toast" id="toast" role="status"></div>
+
+<script>
+const $ = (id) => document.getElementById(id);
+let playing = null;
+let lastStatus = {};
+let wasRunning = false;
+
+const ICONS = {
+  play: '<polygon points="7 4 20 12 7 20 7 4" fill="currentColor"/>',
+  pause: '<rect x="6" y="4" width="4" height="16" fill="currentColor"/><rect x="14" y="4" width="4" height="16" fill="currentColor"/>',
+  download: '<path d="M12 4v12"/><path d="m7 11 5 5 5-5"/><path d="M5 20h14"/>',
+  trash: '<path d="M4 7h16"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M6 7l1 13h10l1-13"/><path d="M9 7V4h6v3"/>',
+  refresh: '<path d="M20 11a8 8 0 1 0-2.3 5.7"/><path d="M20 4v7h-7"/>',
+  rss: '<path d="M5 11a8 8 0 0 1 8 8"/><path d="M5 5a14 14 0 0 1 14 14"/><circle cx="6" cy="18" r="1.5" fill="currentColor"/>',
+  copy: '<rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a1 1 0 0 1 1-1h10"/>',
+  check: '<path d="m5 12 5 5 9-10"/>',
+  sun: '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>',
+  moon: '<path d="M20 14.5A8 8 0 0 1 9.5 4 8 8 0 1 0 20 14.5z"/>',
+  auto: '<circle cx="12" cy="12" r="8"/><path d="M12 4a8 8 0 0 1 0 16z" fill="currentColor"/>',
+  chevron: '<path d="m9 6 6 6-6 6"/>',
+  close: '<path d="M6 6l12 12M18 6 6 18"/>',
+  radio: '<rect x="3" y="8" width="18" height="12" rx="2"/><path d="m7 8 9-5"/><circle cx="15" cy="14" r="2.5"/><path d="M7 12h3M7 16h3"/>',
+};
+
+function icon(name) {
+  const t = document.createElement("template");
+  t.innerHTML = `<svg class="i" viewBox="0 0 24 24" aria-hidden="true">${ICONS[name]}</svg>`;
+  return t.content.firstChild;
+}
+
+function el(tag, props = {}, ...children) {
+  const node = Object.assign(document.createElement(tag), props);
+  node.append(...children.filter((c) => c != null));
+  return node;
+}
+
+function setIcon(node, name, label) {
+  node.replaceChildren(icon(name), ...(label ? [label] : []));
+}
+
+let toastTimer;
+function toast(msg, isError = false) {
+  const t = $("toast");
+  t.textContent = msg;
+  t.classList.toggle("err", isError);
+  t.classList.add("on");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove("on"), 2800);
+}
+
+/* ---------- Theme ---------- */
+const THEMES = ["system", "light", "dark"];
+const THEME_INFO = { system: ["auto", "System"], light: ["sun", "Hell"], dark: ["moon", "Dunkel"] };
+
+function currentTheme() {
+  return document.documentElement.dataset.theme || "system";
+}
+
+function applyTheme(theme) {
+  if (theme === "system") delete document.documentElement.dataset.theme;
+  else document.documentElement.dataset.theme = theme;
+  try { theme === "system" ? localStorage.removeItem("theme") : localStorage.setItem("theme", theme); } catch {}
+  const [ic, label] = THEME_INFO[theme];
+  setIcon($("theme"), ic);
+  $("theme").title = `Farbschema: ${label} (klicken zum Wechseln)`;
+}
+
+$("theme").onclick = () => {
+  const next = THEMES[(THEMES.indexOf(currentTheme()) + 1) % THEMES.length];
+  applyTheme(next);
+  toast(`Farbschema: ${THEME_INFO[next][1]}`);
+};
+
+/* ---------- Formatierung ---------- */
+function stripHtml(html) {
+  return html ? new DOMParser().parseFromString(html, "text/html").body.textContent.trim() : "";
+}
+
+const dateOf = (iso) => new Date(iso + "T12:00:00");
+
+function fmtDate(iso) {
+  return dateOf(iso).toLocaleDateString("de-AT", { weekday: "long", day: "numeric", month: "long" });
+}
+
+function fmtTime(iso) {
+  if (!iso) return "–";
+  const d = new Date(iso);
+  const today = new Date().toDateString() === d.toDateString();
+  const time = d.toLocaleTimeString("de-AT", { hour: "2-digit", minute: "2-digit" });
+  return today ? `heute ${time}` : `${d.toLocaleDateString("de-AT", { day: "2-digit", month: "2-digit" })} ${time}`;
+}
+
+const fmtMB = (n) => (n >= 1e9 ? `${(n / 1e9).toFixed(2)} GB` : `${(n / 1e6).toFixed(1)} MB`);
+
+function fmtEta(seconds) {
+  return seconds < 60 ? `${Math.ceil(seconds)} s` : `${Math.ceil(seconds / 60)} min`;
+}
+
+async function api(path, opts) {
+  const res = await fetch(path, opts);
+  if (!res.ok) throw new Error((await res.json().catch(() => ({}))).detail || res.statusText);
+  return res.json();
+}
+
+const audioUrl = (name) => `api/episodes/${encodeURIComponent(name)}/audio`;
+
+function emptyState(text, isError = false) {
+  const node = el("div", { className: "empty" }, icon("radio"), text);
+  if (isError) node.style.color = "var(--err)";
+  return node;
+}
+
+/* ---------- Downloads ---------- */
+async function loadEpisodes() {
+  const list = $("episodes");
+  let items;
+  try { items = await api("api/episodes"); }
+  catch (e) { list.replaceChildren(emptyState(e.message, true)); return; }
+  $("ep-count").textContent = items.length;
+  const total = items.reduce((sum, ep) => sum + ep.size, 0);
+  $("t-archive").textContent = items.length ? `${items.length} Folgen · ${fmtMB(total)}` : "leer";
+  if (!items.length) {
+    list.replaceChildren(emptyState("Noch keine Folgen geladen."));
+    return;
+  }
+  list.replaceChildren(...items.map((ep) => {
+    const sub = stripHtml(ep.subtitle);
+    const desc = [sub, stripHtml(ep.description), ep.moderator && `Moderation: ${ep.moderator}`]
+      .filter(Boolean).join("\n\n");
+    const details = el("div", { className: "details", textContent: desc || "Keine Beschreibung.", hidden: true });
+    const d = dateOf(ep.date);
+    const playBtn = el("button", { className: "icon-btn ghost play", title: "Abspielen", onclick: () => togglePlay(ep) });
+    const dl = el("a", { className: "btn icon-btn ghost", title: "Herunterladen", href: audioUrl(ep.name) + "?download=1" });
+    const del = el("button", { className: "icon-btn ghost danger", title: "Löschen", onclick: () => remove(ep) });
+    setIcon(playBtn, "play"); setIcon(dl, "download"); setIcon(del, "trash");
+    const row = el("div", { className: "row" },
+      el("div", { className: "cal" },
+        el("span", { className: "d", textContent: d.getDate() }),
+        el("span", { className: "m", textContent: d.toLocaleDateString("de-AT", { month: "short" }).replace(".", "") })),
+      el("div", { className: "meta", title: "Details anzeigen", onclick: () => { details.hidden = !details.hidden; } },
+        el("div", { className: "title", textContent: fmtDate(ep.date) }),
+        el("div", { className: "sub", textContent: [fmtMB(ep.size), sub || ep.title].join(" · ") })),
+      el("div", { className: "actions" }, playBtn, dl, del),
+      details);
+    row.dataset.name = ep.name;
+    row._ep = ep;
+    return row;
+  }));
+  syncPlaying();
+}
+
+/* ---------- Player ---------- */
+const audio = $("audio");
+
+function togglePlay(ep) {
+  if (playing === ep.name) {
+    audio.paused ? audio.play() : audio.pause();
+    return;
+  }
+  playing = ep.name;
+  audio.src = audioUrl(ep.name);
+  audio.play();
+  $("now-title").textContent = fmtDate(ep.date);
+  $("now-sub").textContent = ep.title;
+  $("player").classList.add("on");
+  syncPlaying();
+}
+
+function syncPlaying() {
+  const active = playing && !audio.paused;
+  document.querySelectorAll("#episodes .row").forEach((r) => {
+    const mine = r.dataset.name === playing;
+    r.classList.toggle("playing", mine);
+    const btn = r.querySelector(".play");
+    setIcon(btn, mine && active ? "pause" : "play");
+    btn.title = mine && active ? "Pause" : "Abspielen";
+  });
+  setIcon($("pp"), active ? "pause" : "play");
+}
+
+function closePlayer() {
+  audio.pause();
+  audio.removeAttribute("src");
+  audio.load();
+  playing = null;
+  $("player").classList.remove("on");
+  syncPlaying();
+}
+
+audio.addEventListener("play", syncPlaying);
+audio.addEventListener("pause", syncPlaying);
+audio.addEventListener("ended", syncPlaying);
+$("pp").onclick = () => { if (playing) audio.paused ? audio.play() : audio.pause(); };
+$("close").onclick = closePlayer;
+
+async function remove(ep) {
+  if (!confirm(`Folge vom ${fmtDate(ep.date)} löschen?\n\nSie wird danach nicht automatisch erneut geladen.`)) return;
+  try {
+    if (playing === ep.name) closePlayer();
+    await api(`api/episodes/${encodeURIComponent(ep.name)}`, { method: "DELETE" });
+    toast("Folge gelöscht");
+  } catch (e) { toast("Löschen fehlgeschlagen: " + e.message, true); }
+  loadEpisodes(); loadOnline(); refreshStatus();
+}
+
+/* ---------- Online beim ORF ---------- */
+async function loadOnline() {
+  const list = $("online");
+  let items;
+  try { items = await api("api/online"); }
+  catch (e) { list.replaceChildren(el("div", { className: "card" }, emptyState(e.message, true))); return; }
+  if (!items.length) {
+    list.replaceChildren(el("div", { className: "card" }, emptyState("Derzeit keine Folgen online.")));
+    return;
+  }
+  list.replaceChildren(...items.slice().reverse().map((b) => {
+    const badge = el("span", { className: "badge " + b.state, textContent: b.state });
+    badge.dataset.date = b.date;
+    badge.dataset.state = b.state;
+    const d = dateOf(b.date);
+    return el("div", { className: "card day" },
+      el("div", {},
+        el("div", { className: "wd", textContent: d.toLocaleDateString("de-AT", { weekday: "long" }) }),
+        el("div", { className: "dt", textContent: d.toLocaleDateString("de-AT", { day: "2-digit", month: "2-digit" }) })),
+      badge,
+      b.state === "gelöscht" ? el("button", { textContent: "Erneut laden", onclick: () => restore(b) }) : null);
+  }));
+  showProgress(lastStatus.current, lastStatus.progress);
+}
+
+async function restore(b) {
+  try {
+    await api(`api/online/${b.day}/restore`, { method: "POST" });
+    toast("Wird erneut geladen");
+  } catch (e) { toast(e.message, true); }
+  wasRunning = true;
+  loadOnline(); refreshStatus();
+}
+
+/* ---------- Status & Fortschritt ---------- */
+function showProgress(name, p) {
+  $("progress").hidden = !p;
+  document.querySelectorAll("#online .badge").forEach((b) => {
+    const active = p && name && name.startsWith(b.dataset.date + " ");
+    b.className = "badge " + (active ? "laedt" : b.dataset.state);
+    b.textContent = active ? (p.total ? `lädt ${Math.floor((p.done / p.total) * 100)} %` : "lädt") : b.dataset.state;
+  });
+  if (!p) return;
+  const pct = p.total ? Math.min(100, (p.done / p.total) * 100) : null;
+  const parts = [p.total ? `${fmtMB(p.done)} / ${fmtMB(p.total)}` : fmtMB(p.done)];
+  if (p.speed) parts.push(`${Math.round(p.speed / 1e3)} KB/s`);
+  if (p.eta != null) parts.push(`noch ~${fmtEta(p.eta)}`);
+  $("pname").textContent = name;
+  $("pinfo").textContent = parts.join(" · ");
+  $("pbar").style.width = pct == null ? "0" : `${pct.toFixed(1)}%`;
+  $("pbarwrap").setAttribute("aria-valuenow", pct == null ? "" : pct.toFixed(0));
+}
+
+let timer;
+async function refreshStatus() {
+  clearTimeout(timer);
+  try {
+    const s = await api("api/status");
+    lastStatus = s;
+    const failed = s.last_ok === false && !s.running;
+    $("dot").className = "dot" + (s.running ? " busy" : failed ? " error" : "");
+    $("state-text").textContent = s.running
+      ? (s.current ? `Lädt ${fmtDate(s.current.slice(0, 10))}` : "Prüft auf neue Folgen …")
+      : failed ? "Letzter Lauf mit Fehlern" : "Bereit";
+    $("state-sub").textContent = `Prüft alle ${s.interval_minutes} min automatisch`;
+    $("t-last").textContent = fmtTime(s.last_run);
+    $("t-last").className = "value" + (s.last_ok == null ? "" : s.last_ok ? " ok" : " err");
+    $("t-next").textContent = fmtTime(s.next_run);
+    $("run").disabled = s.running;
+    setIcon($("run"), "refresh", s.running ? "Läuft …" : "Jetzt prüfen");
+    showProgress(s.current, s.progress);
+    const log = $("log");
+    const atBottom = log.scrollTop + log.clientHeight >= log.scrollHeight - 4;
+    log.textContent = s.log.join("\n");
+    if (atBottom) log.scrollTop = log.scrollHeight;
+    if (wasRunning && !s.running) { loadEpisodes(); loadOnline(); }
+    wasRunning = s.running;
+    timer = setTimeout(refreshStatus, s.running ? 3000 : 30000);
+  } catch (e) {
+    $("dot").className = "dot error";
+    $("state-text").textContent = "Server nicht erreichbar";
+    timer = setTimeout(refreshStatus, 10000);
+  }
+}
+
+$("run").onclick = async () => {
+  $("run").disabled = true;
+  try { await api("api/run", { method: "POST" }); toast("Prüfung gestartet"); }
+  catch (e) { toast(e.message, true); }
+  wasRunning = true;
+  setTimeout(refreshStatus, 500);
+};
+
+$("copy").onclick = async () => {
+  const url = new URL("feed.xml", location.href).href;
+  try {
+    await navigator.clipboard.writeText(url);
+    setIcon($("copy"), "check");
+    toast("Feed-URL kopiert – in der Podcast-App einfügen");
+    setTimeout(() => setIcon($("copy"), "copy"), 2000);
+  } catch { prompt("Feed-URL:", url); }
+};
+
+/* ---------- Start ---------- */
+applyTheme(currentTheme());
+setIcon($("run"), "refresh", "Jetzt prüfen");
+setIcon($("rss"), "rss", "RSS");
+setIcon($("copy"), "copy");
+setIcon($("pp"), "play");
+setIcon($("close"), "close");
+$("log-chevron").replaceWith(icon("chevron"));
+loadEpisodes();
+loadOnline();
+refreshStatus();
+</script>
+</body>
+</html>

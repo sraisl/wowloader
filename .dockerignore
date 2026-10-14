@@ -1,0 +1,7 @@
+.git
+*.plist
+install.sh
+__pycache__
+compose.yaml
+downloads
+testdata

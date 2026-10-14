@@ -1,0 +1,14 @@
+services:
+  wowloader:
+    build: .
+    container_name: wowloader
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./downloads:/data          # Zielverzeichnis auf dem Host
+    environment:
+      CHECK_INTERVAL_MINUTES: 60
+      PARALLEL: 4                  # Verbindungen pro Folge
+      # BASE_URL: https://wow.example.org   # für absolute Links im RSS-Feed hinter einem Proxy
+    # user: "1000:1000"            # UID/GID passend zum Besitzer von ./downloads
+    restart: unless-stopped
