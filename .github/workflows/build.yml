@@ -86,6 +86,7 @@ jobs:
     permissions:
       contents: read
       packages: write
+      security-events: write # SARIF-Upload des Image-Scans
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -94,6 +95,37 @@ jobs:
       - uses: docker/setup-qemu-action@99012661954931238ded8c8b007157a8430204e1 # v4.4.0
 
       - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
+
+      # Erst ein amd64-Image in den lokalen Daemon laden und scannen; gepusht wird nur,
+      # wenn der Image-Scan die Quality Gate besteht. Der Cache macht den zweiten Build schnell.
+      - name: Image für den Scan bauen
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
+        with:
+          context: .
+          platforms: linux/amd64
+          load: true
+          push: false
+          tags: wowloader:scan
+          cache-from: type=gha
+
+      - name: Image-Scan (Trivy)
+        uses: sraisl/polyscan-action@dc8a1ea115d2dec570301f18ec929350a5b41145 # v16.1.0
+        with:
+          engines: trivy
+          trivy-image: wowloader:scan
+          max-critical: "0"
+          max-high: "0"
+          max-medium: "50"
+          sarif: "true"
+          # Artefaktname "polyscan-reports" ist fest und schon vom SAST-Job belegt
+          upload-artifacts: "false"
+
+      - name: SARIF nach Code Scanning
+        if: always() && hashFiles('polyscan.sarif') != ''
+        uses: github/codeql-action/upload-sarif@24c54180a607b1449ed407dd24f251e4e9147c8d # v4.38.3
+        with:
+          sarif_file: polyscan.sarif
+          category: polyscan-image
 
       - name: Login bei GHCR
         if: github.event_name != 'pull_request'

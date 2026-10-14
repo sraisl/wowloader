@@ -1,14 +1,17 @@
-FROM python:3.13-slim
+FROM python:3.13-alpine
 
-# Debian-Paketversionen nicht pinnen: Sicherheitsupdates kommen über das Basis-Image (Dependabot)
-# hadolint ignore=DL3008
-RUN apt-get update && apt-get install -y --no-install-recommends tzdata \
-    && rm -rf /var/lib/apt/lists/* \
-    && useradd --create-home --uid 1000 wow
+# Alpine statt Debian-slim: deutlich weniger (ungefixte) CVEs im Basis-Image.
+# Paketversionen nicht pinnen: Sicherheitsupdates kommen über das Basis-Image (Dependabot)
+# hadolint ignore=DL3018
+RUN apk add --no-cache tzdata \
+    && adduser -D -u 1000 wow
 
 WORKDIR /app
 COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+# pip/ensurepip werden zur Laufzeit nicht gebraucht; ihre gebündelten Pakete erzeugen sonst CVE-Funde
+RUN pip install --no-cache-dir -r requirements.txt \
+    && pip uninstall -y pip setuptools wheel \
+    && rm -rf /usr/local/lib/python3.13/ensurepip
 COPY wow_downloader.py app.py ./
 COPY static ./static
 
