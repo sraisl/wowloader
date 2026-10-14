@@ -1,5 +1,7 @@
 FROM python:3.13-slim
 
+# Debian-Paketversionen nicht pinnen: Sicherheitsupdates kommen über das Basis-Image (Dependabot)
+# hadolint ignore=DL3008
 RUN apt-get update && apt-get install -y --no-install-recommends tzdata \
     && rm -rf /var/lib/apt/lists/* \
     && useradd --create-home --uid 1000 wow

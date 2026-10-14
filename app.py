@@ -15,7 +15,7 @@ from datetime import datetime
 from email.utils import format_datetime
 from pathlib import Path
 from urllib.parse import quote
-from xml.sax.saxutils import escape
+from xml.sax.saxutils import escape  # nosec B406 - erzeugt nur XML, parst keins
 
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import FileResponse, Response
@@ -140,6 +140,11 @@ def index():
     return FileResponse(STATIC / "index.html")
 
 
+@app.get("/favicon.svg", include_in_schema=False)
+def favicon():
+    return FileResponse(STATIC / "favicon.svg", media_type="image/svg+xml")
+
+
 @app.get("/api/episodes")
 def episodes():
     return list_episodes()
@@ -226,11 +231,12 @@ def feed(request: Request):
             seconds = int((datetime.fromisoformat(ep["end"]) - pub).total_seconds())
             duration = f"<itunes:duration>{seconds}</itunes:duration>"
         text = " ".join(t for t in (ep["subtitle"], ep["description"]) if t)
+        # Alle Werte laufen durch escape(); der Semgrep-Hinweis auf rohes HTML trifft hier nicht zu.
         items.append(
             "<item>"
             f"<title>{escape(ep['date'] + ' – ' + ep['title'])}</title>"
             f"<description>{escape(text)}</description>"
-            f'<enclosure url="{escape(base + "/api/episodes/" + quote(ep["name"]) + "/audio")}"'
+            f'<enclosure url="{escape(base + "/api/episodes/" + quote(ep["name"]) + "/audio")}"'  # nosemgrep
             f' length="{ep["size"]}" type="audio/mpeg"/>'
             f'<guid isPermaLink="false">{escape(ep["name"])}</guid>'
             f"<pubDate>{format_datetime(pub)}</pubDate>"
@@ -242,7 +248,7 @@ def feed(request: Request):
         '<rss version="2.0" xmlns:itunes="http://www.itunes.com/dtds/podcast-1.0.dtd">'
         "<channel>"
         "<title>Extra WOW – Die 2 um 2.</title>"
-        f"<link>{escape(base)}/</link>"
+        f"<link>{escape(base)}/</link>"  # nosemgrep
         "<description>Radio-Wien-Sendung, automatisch archiviert</description>"
         "<language>de-at</language>"
         "<itunes:author>ORF Radio Wien</itunes:author>"

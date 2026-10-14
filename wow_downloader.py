@@ -47,8 +47,11 @@ def setup_logging():
 
 
 def open_url(url, timeout, headers=None):
+    if not url.startswith("https://"):
+        raise ValueError(f"Nur HTTPS-URLs erlaubt: {url}")
     req = urllib.request.Request(url, headers={"User-Agent": USER_AGENT, **(headers or {})})
-    return urllib.request.urlopen(req, timeout=timeout, context=SSL_CONTEXT)
+    # Schema oben auf https:// beschränkt, file:// & Co. sind damit ausgeschlossen
+    return urllib.request.urlopen(req, timeout=timeout, context=SSL_CONTEXT)  # nosec B310  # nosemgrep
 
 
 def fetch_json(url):

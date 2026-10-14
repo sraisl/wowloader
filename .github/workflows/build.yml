@@ -26,12 +26,11 @@ jobs:
       - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
           python-version: "3.13"
-          cache: pip
-          cache-dependency-path: requirements.txt
 
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: lts/*
+          package-manager-cache: false
 
       - name: Abhängigkeiten installieren
         run: pip install -r requirements.txt
@@ -49,9 +48,40 @@ jobs:
           DEST="$RUNNER_TEMP/data" python -c "import app; print(sorted(r.path for r in app.app.routes))"
           python wow_downloader.py --help
 
+  sast:
+    name: SAST
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write # SARIF-Upload nach Code Scanning
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      # "all" überspringt Engines ohne passende Dateien; relevant hier: Semgrep, Bandit,
+      # Trivy (requirements.txt), gitleaks/betterleaks, hadolint (Dockerfile), zizmor (Workflows)
+      - name: PolyScan
+        uses: sraisl/polyscan-action@dc8a1ea115d2dec570301f18ec929350a5b41145 # v16.1.0
+        with:
+          engines: all
+          max-critical: "0"
+          max-high: "0"
+          max-medium: "50"
+          sarif: "true"
+          sbom: "true"
+          upload-artifacts: "true"
+
+      - name: SARIF nach Code Scanning
+        if: always() && hashFiles('polyscan.sarif') != ''
+        uses: github/codeql-action/upload-sarif@24c54180a607b1449ed407dd24f251e4e9147c8d # v4.38.3
+        with:
+          sarif_file: polyscan.sarif
+          category: polyscan
+
   docker:
     name: Docker-Image
-    needs: check
+    needs: [check, sast]
     runs-on: ubuntu-latest
     permissions:
       contents: read
