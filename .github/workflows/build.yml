@@ -120,6 +120,26 @@ jobs:
           # Artefaktname "polyscan-reports" ist fest und schon vom SAST-Job belegt
           upload-artifacts: "false"
 
+      # Image-Funde haben keinen Dateibezug, Code Scanning verlangt aber pro Fund eine Location.
+      # Solche Funde dem Dockerfile zuordnen, das das Basis-Image festlegt.
+      - name: SARIF für Code Scanning aufbereiten
+        if: always() && hashFiles('polyscan.sarif') != ''
+        shell: python
+        run: |
+          import json
+          fallback = {"physicalLocation": {"artifactLocation": {"uri": "Dockerfile"}, "region": {"startLine": 1}}}
+          with open("polyscan.sarif", encoding="utf-8") as f:
+              sarif = json.load(f)
+          fixed = 0
+          for run in sarif.get("runs", []):
+              for result in run.get("results", []):
+                  if not any(loc.get("physicalLocation") for loc in result.get("locations") or []):
+                      result["locations"] = [fallback]
+                      fixed += 1
+          with open("polyscan.sarif", "w", encoding="utf-8") as f:
+              json.dump(sarif, f)
+          print(f"{fixed} Fund(e) dem Dockerfile zugeordnet")
+
       - name: SARIF nach Code Scanning
         if: always() && hashFiles('polyscan.sarif') != ''
         uses: github/codeql-action/upload-sarif@24c54180a607b1449ed407dd24f251e4e9147c8d # v4.38.3
