@@ -59,12 +59,12 @@ jobs:
         with:
           persist-credentials: false
 
-      # "all" überspringt Engines ohne passende Dateien; relevant hier: Semgrep, Bandit,
-      # Trivy (requirements.txt), gitleaks/betterleaks, hadolint (Dockerfile), zizmor (Workflows)
+      # Explizite Engines statt "all": ESLint bricht ab, wenn es keine .js-Dateien gibt
+      # (das UI-JavaScript steht inline in static/index.html).
       - name: PolyScan
         uses: sraisl/polyscan-action@dc8a1ea115d2dec570301f18ec929350a5b41145 # v16.1.0
         with:
-          engines: all
+          engines: semgrep,bandit,trivy,gitleaks,betterleaks,hadolint,zizmor
           max-critical: "0"
           max-high: "0"
           max-medium: "50"
