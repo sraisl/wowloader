@@ -1,6 +1,7 @@
 services:
   wowloader:
-    build: .
+    image: ghcr.io/sraisl/wowloader:latest
+    pull_policy: always
     container_name: wowloader
     ports:
       - "8000:8000"

@@ -33,13 +33,13 @@ check:
 
 # --- Docker ------------------------------------------------------------
 
-# Baut das Image
+# Baut das Image lokal (zum Testen; compose verwendet das Image aus GHCR)
 build:
-    docker compose build
+    docker build -t wowloader .
 
-# Startet den Container im Hintergrund (Ziel: ./downloads)
+# Holt das aktuelle Image aus GHCR und startet den Container (Ziel: ./downloads)
 up:
-    docker compose up -d --build
+    docker compose up -d
     @echo "UI: http://localhost:{{port}}"
 
 # Stoppt und entfernt den Container
