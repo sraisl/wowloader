@@ -62,7 +62,7 @@ jobs:
       # Explizite Engines statt "all": ESLint bricht ab, wenn es keine .js-Dateien gibt
       # (das UI-JavaScript steht inline in static/index.html).
       - name: PolyScan
-        uses: sraisl/polyscan-action@dc8a1ea115d2dec570301f18ec929350a5b41145 # v16.1.0
+        uses: sraisl/polyscan-action@c801894f046bf0a567e64cac309d95656713ad8f # v16.1.1
         with:
           engines: semgrep,bandit,trivy,gitleaks,betterleaks,hadolint,zizmor
           max-critical: "0"
@@ -109,7 +109,7 @@ jobs:
           cache-from: type=gha
 
       - name: Image-Scan (Trivy)
-        uses: sraisl/polyscan-action@dc8a1ea115d2dec570301f18ec929350a5b41145 # v16.1.0
+        uses: sraisl/polyscan-action@c801894f046bf0a567e64cac309d95656713ad8f # v16.1.1
         with:
           engines: trivy
           trivy-image: wowloader:scan
