@@ -1,4 +1,4 @@
-FROM python:3.13-alpine
+FROM python:3.14-alpine
 
 # Alpine statt Debian-slim: deutlich weniger (ungefixte) CVEs im Basis-Image.
 # Paketversionen nicht pinnen: Sicherheitsupdates kommen über das Basis-Image (Dependabot)
@@ -11,7 +11,8 @@ COPY requirements.txt .
 # pip/ensurepip werden zur Laufzeit nicht gebraucht; ihre gebündelten Pakete erzeugen sonst CVE-Funde
 RUN pip install --no-cache-dir -r requirements.txt \
     && pip uninstall -y pip setuptools wheel \
-    && rm -rf /usr/local/lib/python3.13/ensurepip
+    && rm -rf /usr/local/lib/python3.*/ensurepip \
+    && ! python -c "import ensurepip" 2>/dev/null
 COPY wow_downloader.py app.py ./
 COPY static ./static
 

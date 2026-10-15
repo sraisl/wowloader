@@ -21,7 +21,7 @@ fetch dest="~/Music/Extra WOW":
 
 # Startet das Web-UI lokal mit Auto-Reload (benötigt uv)
 dev dest=dev_dest:
-    DEST="{{dest}}" uv run --python 3.13 --with-requirements requirements.txt \
+    DEST="{{dest}}" uv run --python 3.14 --with-requirements requirements.txt \
         uvicorn app:app --reload --port {{port}}
 
 # Prüft Python- und JavaScript-Syntax
