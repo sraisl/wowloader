@@ -23,7 +23,7 @@ jobs:
         with:
           persist-credentials: false
 
-      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
         with:
           python-version: "3.14"
 
@@ -62,7 +62,7 @@ jobs:
       # Explizite Engines statt "all": ESLint bricht ab, wenn es keine .js-Dateien gibt
       # (das UI-JavaScript steht inline in static/index.html).
       - name: PolyScan
-        uses: sraisl/polyscan-action@c801894f046bf0a567e64cac309d95656713ad8f # v16.1.1
+        uses: sraisl/polyscan-action@8c466cf332de6718097163eb81c8c07364031b05 # v17.2.2
         with:
           engines: semgrep,bandit,trivy,gitleaks,betterleaks,hadolint,zizmor
           max-critical: "0"
@@ -74,7 +74,7 @@ jobs:
 
       - name: SARIF nach Code Scanning
         if: always() && hashFiles('polyscan.sarif') != ''
-        uses: github/codeql-action/upload-sarif@24c54180a607b1449ed407dd24f251e4e9147c8d # v4.38.3
+        uses: github/codeql-action/upload-sarif@9b3254085494b55a0f7c4c2b3d2d52cc712ce370 # v4.39.1
         with:
           sarif_file: polyscan.sarif
           category: polyscan
@@ -109,7 +109,7 @@ jobs:
           cache-from: type=gha
 
       - name: Image-Scan (Trivy)
-        uses: sraisl/polyscan-action@c801894f046bf0a567e64cac309d95656713ad8f # v16.1.1
+        uses: sraisl/polyscan-action@8c466cf332de6718097163eb81c8c07364031b05 # v17.2.2
         with:
           engines: trivy
           trivy-image: wowloader:scan
@@ -142,14 +142,14 @@ jobs:
 
       - name: SARIF nach Code Scanning
         if: always() && hashFiles('polyscan.sarif') != ''
-        uses: github/codeql-action/upload-sarif@24c54180a607b1449ed407dd24f251e4e9147c8d # v4.38.3
+        uses: github/codeql-action/upload-sarif@9b3254085494b55a0f7c4c2b3d2d52cc712ce370 # v4.39.1
         with:
           sarif_file: polyscan.sarif
           category: polyscan-image
 
       - name: Login bei GHCR
         if: github.event_name != 'pull_request'
-        uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4.6.0
+        uses: docker/login-action@81c6f93d4bc991e510b342a00b419b3bb4efc5c6 # v4.7.0
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
