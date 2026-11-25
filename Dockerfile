@@ -1,4 +1,4 @@
-FROM python:3.14-alpine
+FROM python:3.15-alpine
 
 # Alpine statt Debian-slim: deutlich weniger (ungefixte) CVEs im Basis-Image.
 # Paketversionen nicht pinnen: Sicherheitsupdates kommen über das Basis-Image (Dependabot)
